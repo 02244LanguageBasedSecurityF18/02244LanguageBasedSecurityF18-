@@ -1,27 +1,43 @@
 Protocol: EasyID
 
-Types: Agent U,W,n;
+Types: Agent U,W,e;
        #Number ;
        Function pk;
+       Symmetric_key Ktemp
 
 
-Knowledge: U: W,U,n,pk(W),pk(n),pwd,code,answer;
-           W: W,U,n,pk(n),pk(W),inv(pk(W));
-           n: W,U,n,pk(n),pk(W),inv(pk(n)),pwd,code,answer
+Knowledge: U: W,U,e,pk(W),pk(e),PWD,CODE,ANSWER;
+           W: W,U,e,pk(e),pk(W),inv(pk(W));
+           e: W,U,e,pk(e),pk(W),inv(pk(e)),PWD,CODE,ANSWER
 
 Actions:
+#1st step: User transfer the CPR number and password to the Website
+U -> W: {U,{U,W,PWD}pk(e)}pk(W)
+#2nd step: Website transfer the CPR number and password to the e company
+W -> e: {{U,W,PWD}pk(e)}inv(pk(W))
 
-U -> W: {U,pwd}pk(W)
-                                    # User encrypt U(CPR) and password with the public key of Website
-W -> n: {{U,pwd,n}inv(pk(W))}pk(n)  # The website signs the data from the user and send to the Nets company.
-                                    # The website also make sure only the Net company can read the data.
-n -> W: {{code,W,U}inv(pk(n))}pk(W) # The Net company replies with challenge code for the user and then send to the website
-W -> U: {code,W,U}inv(pk(n))
+#Big problem
+#3rd step: If the password matches to the CPR(U) && the msg is come from the W then the e company return the challenge code
+e -> W: {U, e, CODE}pk{W}
+#4th step: The Website could be the intruder, and the Website bypass the message from ecompany to the User
+W -> U: U, e, CODE
+
+#5th step: The User enter the answer to the code to the Website.
+U -> W: {U,{U,W,CODE,ANSWER}pk(e)}pk(W)
+#6th step: The Website passing the answer of the code to the e company
+W -> e: {{U,W,CODE,ANSWER}pk(e)}inv(pk(W))
+
+#Big problem
+#7th step: If the answer matches with the code && the message is coming from the W then the e company return the temporal shared key between U/W
+e -> W: {U,W,Ktemp}pk(W), U,W,e,Ktemp
+#8th step: The Website bypass the message from the e company to the User
+W -> U: U,W,e,Ktemp
 
 
 Goals:
+U authenticates e on Ktemp,W
+W authenticates e on Ktemp,U
+Ktemp secret between U,W,e
 
-B authenticates A on M
-#M secret between A,B
 
 # teletype token a1c2a42c4b2b618fa6e0578bb11ed6906ced589d
