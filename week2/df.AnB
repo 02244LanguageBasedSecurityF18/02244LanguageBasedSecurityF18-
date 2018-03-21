@@ -1,0 +1,25 @@
+Protocol: DF
+
+Types: Agent A,B;
+       Number M,N;
+       Function pk
+
+Knowledge: A: A,B,pk(A),pk(B),inv(pk(A)),g;
+           B: A,B,pk(A),pk(B),inv(pk(B)),g
+
+Actions:
+A->B: {B,exp(g,X)}inv(pk(A))  #
+#A->B: exp(g,X)
+#B->A: exp(g,Y)
+B->A: {A,exp(g,Y)}inv(pk(B))
+
+# A computes exp(exp(g,Y),X)
+# =
+# B computes exp(exp(g,X),Y)
+
+A->B: {| M |}exp(exp(g,X),Y)
+
+Goals:
+
+B authenticates A on M
+#M secret between A,B

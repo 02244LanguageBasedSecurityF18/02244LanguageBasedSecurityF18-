@@ -1,0 +1,20 @@
+Protocol: week
+
+Types: Agent A,B;
+       Number M,N;
+       Function pk
+
+Knowledge: A: A,B,pk(A),pk(B),inv(pk(A));
+           B: A,B,pk(A),pk(B),inv(pk(B))
+
+Actions:
+B->A: N                               #send nonce for chanllange test
+A->B: { {M,B,N}inv(pk(A)) }(pk(B))    #{ {M}inv(pk(A)) }(pk(i), B can be a dishonest party
+                                      #{ {M}inv(pk(A)) }(pk(C)
+                                      #explicitly define who is the reader
+
+
+Goals:
+
+B authenticates A on M
+#M secret between A,B

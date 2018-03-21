@@ -1,0 +1,27 @@
+Protocol: EasyID
+
+Types: Agent U,W,n;
+       #Number ;
+       Function pk;
+
+
+Knowledge: U: W,U,n,pk(W),pk(n),pwd,code,answer;
+           W: W,U,n,pk(n),pk(W),inv(pk(W));
+           n: W,U,n,pk(n),pk(W),inv(pk(n)),pwd,code,answer
+
+Actions:
+
+U -> W: {U,pwd}pk(W)
+                                    # User encrypt U(CPR) and password with the public key of Website
+W -> n: {{U,pwd,n}inv(pk(W))}pk(n)  # The website signs the data from the user and send to the Nets company.
+                                    # The website also make sure only the Net company can read the data.
+n -> W: {{code,W,U}inv(pk(n))}pk(W) # The Net company replies with challenge code for the user and then send to the website
+W -> U: {code,W,U}inv(pk(n))
+
+
+Goals:
+
+B authenticates A on M
+#M secret between A,B
+
+# teletype token a1c2a42c4b2b618fa6e0578bb11ed6906ced589d

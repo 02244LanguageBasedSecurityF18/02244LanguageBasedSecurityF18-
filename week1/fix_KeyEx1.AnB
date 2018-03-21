@@ -1,0 +1,30 @@
+Protocol: KeyEx
+# Naive first version without encryption
+
+Types:
+  Agent A,B,s;
+  Symmetric_key KAB;
+  Number c1, c2, c3, NB, NA;	#NB for replay issue
+  Function sk,pre			#what the pre is not defined
+
+Knowledge:
+  A: A,B,s,sk(A,s),c1,c2,c3,pre;
+  B: A,B,s,sk(B,s),c1,c2,c3,pre;
+  s: A,B,s,sk(A,s),sk(B,s),c1,c2,c3,pre
+  #where A!=B													#5TH
+Actions:
+
+B->A: A,B,NB													#4th
+A->s: c1,A,B,NB,NA
+# s creates key KAB
+s->A: c2,{| KAB,A,B,NA,NB |}sk(A,s), {| KAB,A,B,NA,NB |}sk(B,s)	#2nd adding A, B to the payload #adding identity
+A->B: c3,A,{| KAB,A,B,NA,NB |}sk(B,s) 							#1st modification of sending shared key with encryp
+#B->A: {| NB |}KAB												#3rd modificationchallenge response
+#A->B: {| pre(NB) |}KAB											#6th remove the challange
+ 
+Goals: 
+
+A authenticates s on KAB,B
+B authenticates s on KAB,A
+KAB secret between A,B,s
+
