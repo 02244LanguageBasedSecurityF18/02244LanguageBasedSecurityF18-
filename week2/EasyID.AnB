@@ -4,7 +4,7 @@ Types: Agent U,W,e;
        Number PWD,CODE,ANSWER;
        Function pk;
        Symmetric_key Ktemp
-
+#Li wenhao
 #Initial Knowledge problem on CPR and password 
 Knowledge: U: W,U,e,pk(W),pk(e); #PWD,CODE,ANSWER
            W: W,U,e,pk(e),pk(W),inv(pk(W));
