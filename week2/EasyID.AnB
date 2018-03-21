@@ -1,14 +1,14 @@
 Protocol: EasyID
 
 Types: Agent U,W,e;
-       #Number ;
+       Number PWD,CODE,ANSWER;
        Function pk;
        Symmetric_key Ktemp
 
 
-Knowledge: U: W,U,e,pk(W),pk(e),PWD,CODE,ANSWER;
+Knowledge: U: W,U,e,pk(W),pk(e);
            W: W,U,e,pk(e),pk(W),inv(pk(W));
-           e: W,U,e,pk(e),pk(W),inv(pk(e)),PWD,CODE,ANSWER
+           e: W,U,e,pk(e),pk(W),inv(pk(e))
 
 Actions:
 #1st step: User transfer the CPR number and password to the Website
@@ -18,7 +18,7 @@ W -> e: {{U,W,PWD}pk(e)}inv(pk(W))
 
 #Big problem
 #3rd step: If the password matches to the CPR(U) && the msg is come from the W then the e company return the challenge code
-e -> W: {U, e, CODE}pk{W}
+e -> W: {U, e, CODE}pk(W)
 #4th step: The Website could be the intruder, and the Website bypass the message from ecompany to the User
 W -> U: U, e, CODE
 
