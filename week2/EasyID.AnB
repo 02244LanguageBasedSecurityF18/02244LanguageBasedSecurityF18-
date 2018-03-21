@@ -5,10 +5,10 @@ Types: Agent U,W,e;
        Function pk;
        Symmetric_key Ktemp
 
-
-Knowledge: U: W,U,e,pk(W),pk(e);
+#Initial Knowledge problem on CPR and password 
+Knowledge: U: W,U,e,pk(W),pk(e); #PWD,CODE,ANSWER
            W: W,U,e,pk(e),pk(W),inv(pk(W));
-           e: W,U,e,pk(e),pk(W),inv(pk(e))
+           e: W,U,e,pk(e),pk(W),inv(pk(e)) #PWD,CODE,ANSWER
 
 Actions:
 #1st step: User transfer the CPR number and password to the Website
