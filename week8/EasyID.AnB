@@ -4,23 +4,30 @@ Types: Agent U,W,e;
        Number PWD,CODE,ANSWER;
        Function pk;
        Symmetric_key Ktemp
-#Li wenhao
-#Initial Knowledge problem on CPR and password 
-Knowledge: U: W,U,e,pk(W),pk(e); #PWD,CODE,ANSWER
+
+#Initial Knowledge problem on CPR and password
+Knowledge: U: W,U,e,pk(W),pk(e);
            W: W,U,e,pk(e),pk(W),inv(pk(W));
-           e: W,U,e,pk(e),pk(W),inv(pk(e)) #PWD,CODE,ANSWER
+           e: W,U,e,pk(e),pk(W),inv(pk(e))
+
+#where U!= W
 
 Actions:
+
 #1st step: User transfer the CPR number and password to the Website
-U -> W: {U,{U,W,PWD}pk(e)}pk(W)
+#U -> W: {U,{U,W,PWD}pk(e)}pk(W)
+U -> W: {U,W,{U,W,PWD}pk(e)}pk(W)     # msg between U and W
 #2nd step: Website transfer the CPR number and password to the e company
 W -> e: {{U,W,PWD}pk(e)}inv(pk(W))
+#W -> e: {{U,W}pk(e),{U,W,PWD}pk(e)}inv(pk(W))
 
 #Big problem
 #3rd step: If the password matches to the CPR(U) && the msg is come from the W then the e company return the challenge code
-e -> W: {U, e, CODE}pk(W)
-#4th step: The Website could be the intruder, and the Website bypass the message from ecompany to the User
-W -> U: U, e, CODE
+e -> W: {U,e,CODE}pk(W)
+#e -> W: {{U,e,CODE,{Kwu}inv(pk(e))}}pk(W)
+#4th step: The Website could be the intruder, and the Website bypass the message from e company to the User
+W -> U: U,e,CODE
+#W -> U: {U,e,CODE}inv(pk(W)) #W -> U: {U,e,CODE,{Kwu}inv(pk(e))}inv(pk(w))
 
 #5th step: The User enter the answer to the code to the Website.
 U -> W: {U,{U,W,CODE,ANSWER}pk(e)}pk(W)
