@@ -1,0 +1,49 @@
+
+Protocol: EasyID
+
+Types: Agent U,W,e;
+       Number PWD, NU;
+       Function pk, mac, sk;
+       Symmetric_key Ktemp
+
+Knowledge: U: U,W,e,pk(W),pk(e),sk(U,e),mac;
+           W: U,W,e,pk(W),pk(e),inv(pk(W));
+           e: U,W,e,pk(W),pk(e),inv(pk(e)),sk(U,e),mac
+where U!= W
+
+Actions:
+
+#0th step: e need to know the PWD of User to verify the PWD received in the 2nd step
+U -> e:{| U,PWD |}sk(U,e)
+
+#1st step: User transfer the CPR number and PWD to the Website
+U -> W: { U,W, { U,W,e,PWD }pk(e) }pk(W)
+#2nd step: Website transfer the CPR number and PWD to the e company
+W -> e: { U,W,e,PWD }pk(e) # If we need signature, add inv(pk(W))
+
+#3rd step: If the PWD matches && the msg is come from the W then the e company return the challenge code(Nonce)
+e -> W: { U,W, {| U,W,e,NU |}sk(U,e) }pk(W)
+#4th step: Website transfer the Nonce to User
+W -> U: {| U,W,e,NU |}sk(U,e)
+
+#5th step: The User enter the answer to the code to the Website.
+U -> W: { U,W, { U,W,e,mac(sk(U,e), NU) }pk(e) }pk(W)
+#6th step: The Website passing the answer of the code to the e company
+W -> e: { U,W,e,mac(sk(U,e), NU) }pk(e)
+
+## If User replies the right answer of the Nonce, e would make secure channel between U and W.
+
+#7th step: e replies to W with Symmetric_key Ktemp
+e -> W: {{U,W,e,Ktemp}inv(pk(e)),{|U,W,e,Ktemp|}sk(U,e)}pk(W)
+#8th step: W transfer Ktemp to U
+W -> U: {|U,W,e,Ktemp|}sk(U,e)
+
+
+Goals:
+e weakly authenticates U on PWD
+PWD secret between U,e
+NU secret between U,e
+
+W authenticates e on Ktemp,U
+U authenticates e on Ktemp,W
+Ktemp secret between W,U,e
