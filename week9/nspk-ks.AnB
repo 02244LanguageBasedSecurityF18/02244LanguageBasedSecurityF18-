@@ -1,0 +1,37 @@
+Protocol: NSPKKeyServer
+
+Types: Agent A,B,s;
+       Number NA,NB, X,Y,Z;
+       Function pk
+
+Knowledge: A: A,pk(A),inv(pk(A)),s,pk(s),B ,g;
+	   B: B,pk(B),inv(pk(B)),s,pk(s), g;
+	   s: s,pk,inv(pk(s)), g
+
+Actions:
+
+A->s: A,s, exp(g,X)
+s->A: { A,s, exp(g,Y)}inv(pk(s))
+
+A->s: {|A,B|}exp(exp(g,X), Y)
+s->A: {|A,B,pk(B)|}exp(exp(g,Y), X)
+
+A->B: {NA,A}(pk(B))
+
+B->s: B,s, exp(g,Z)
+s->B: { B,s, exp(g,Y)}inv(pk(s))
+
+B->s: {|A,B|}exp(exp(g,Y), Z)
+s->B: {|A,B,pk(A)|}exp(exp(g,Z), Y)
+B->A: {NA,NB}(pk(A))
+A->B: {NB}(pk(B))
+
+Goals:
+A *->* B: NA
+B *->* A: NB
+
+#A->s: { A,s, exp(g,X)}inv(pk(A))
+#s->A: { A,s, exp(g,Y)}inv(pk(s))
+
+#A->s: {|A,B,NA|}exp(exp(g,X), Y)
+#s->A: {|A,B,NA,pk(B)|}exp(exp(g,Y), X)
