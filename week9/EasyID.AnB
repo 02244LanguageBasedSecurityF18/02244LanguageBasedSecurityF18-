@@ -2,50 +2,43 @@
 Protocol: EasyID
 
 Types: Agent U,W,e;
-       Number CODE, ANSWER;
-       Function pk;
-       Symmetric_key PWD
+       Number PWD, CODE, ANSWER, X, Y, Z, Ktemp;
+       Function pk
+       #Symmetric_key Ktemp
 
 #Initial Knowledge problem on CPR and PWD
-Knowledge: U: W,U,e,pk(W),pk(e);
-           W: W,U,e,pk(e),pk(W),inv(pk(W));
-           e: W,U,e,pk(e),pk(W),inv(pk(e))
-
-where U!= W
+Knowledge: U: W,U,e,pk(W),pk(e), g;
+           W: W,U,e,pk(e),pk(W),inv(pk(W)), g;
+           e: W,U,e,pk(e),pk(W),inv(pk(e)), g
 
 Actions:
 
 #1st step: User transfer the CPR number and password to the Website
-#U -> W: { { U,e,PWD }pk(e) }pk(W)
-U -> W: { U,e,PWD }pk(e)
+U -> W: { U,W, { U,e, exp(g,X) }pk(e) }pk(W)
 #2nd step: Website transfer the CPR number and password to the e company
-W -> e: { { U,e,PWD }pk(e) }inv(pk(W))
+W -> e: { W,e, exp(g,Y), { U,e, exp(g,X) }pk(e)}pk(e)
 
-#Big problem
-#3rd step: If the password matches to the CPR(U) && the msg is come from the W then the e company return the challenge code
-e -> W: { {| U,e,CODE |}PWD }pk(W)
-#4th step: The Website could be the intruder, and the Website bypass the message from e company to the User
-W -> U: { {| U,e,CODE |}PWD }pk(W)
+e -> W: { U,W,e, exp(g,Z), exp(exp(g,Z), Y) }pk(W)
+W -> U: { U,W,e, exp(exp(g,Z), Y) }inv(pk(W))
 
-#5th step: The User enter the answer to the code to the Website.
-#U -> W: { U,W, { U,W,CODE,ANSWER }pk(e) }pk(W)
+U -> W: {| U,PWD |}exp(exp(exp(g,Z), Y), X)
+W -> e: {| {| U,PWD |}exp(exp(exp(g,Z), Y), X) |}exp(exp(g,Y), Z)
 
-#6th step: The Website passing the answer of the code to the e company
-#W -> e: { { U,W,CODE,ANSWER }pk(e) }inv(pk(W))
+e -> W: {| {| U,CODE |}exp(exp(exp(g,Z), Y), Z) |}exp(exp(g,Z), Y)
+W -> U: {| U,CODE |}exp(exp(exp(g,Z), Y), Z)
 
-#Big problem
-#7th step: If the answer matches with the code && the message is coming from the W then the e company return the temporal shared key between U/W
-#e -> W: { U,W,Ktemp }pk(W), U,W,e,Ktemp
-#8th step: The Website bypass the message from the e company to the User
-#W -> U: U,W,e,Ktemp
+U -> W: {| U,ANSWER |}exp(exp(exp(g,Z), Y), X)
+W -> e: {| {| U,ANSWER |}exp(exp(exp(g,Z), Y), X) |}exp(exp(g,Y), Z)
 
+#11th step: If the answer matches with the code && the message is coming from the W then the e company return the temporal shared key between U/W
+e -> W: {| {| U,W, Ktemp |}exp(exp(exp(g,Z), Y), X) |}exp(exp(g,Z), Y)
+#12th step: The Website bypass the message from the e company to the User
+W -> U: U,W,Ktemp
 
 Goals:
-#U authenticates e on Ktemp,W
-#W authenticates e on Ktemp,U
-#Ktemp secret between U,W,e
-e authenticates U on PWD
-PWD secret between U,e
+
+U *->* W : Ktemp#, PWD, CODE, ANSWER
+W *->* U : Ktemp#, PWD, CODE, ANSWER
 
 
 # teletype token a1c2a42c4b2b618fa6e0578bb11ed6906ced589d
