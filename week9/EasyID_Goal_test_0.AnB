@@ -1,0 +1,58 @@
+
+Protocol: EasyID
+### Goal testing, secret, authenticates and secret && authenticates
+Types: Agent U,W,e;
+       Number CPR, PWD, CODE, ANSWER;
+       Function pk,sk,mac
+       #Symmetric_key Ktemp
+
+#Initial Knowledge problem on CPR and PWD
+Knowledge: U: W,U,e,pk(W),pk(e), sk(U,e),mac,pre; #sk(U,e) modeling user name and
+                                              #password, U-username is the CPR
+           W: W,U,e,pk(e),pk(W),inv(pk(W));
+           e: W,U,e,pk(e),pk(W),inv(pk(e)), sk(U,e),mac,pre
+where U != W
+
+Actions:
+###Action for Test-1
+#U -> e: {| U,e, CPR,PWD |}sk(U,e)
+#e -> U: {| e,U, CODE |}sk(U,e)
+
+###Action for Test-2
+#e -> U: {| U,e, CODE |}sk(U,e)
+#U -> e: {| e,U, CODE |}sk(U,e)
+
+###Action for Test-3
+e -> U: { {| U,e, CODE |}sk(U,e) }inv(pk(e))
+U -> e: {| e,U, pre(CODE), mac(sk(U,e), ANSWER) |}sk(U,e)
+
+Goals:
+### secret ->*
+# e.g U ->* e : CPR,PWD
+# CPR,PWD secret between U,e
+
+### authentication *->
+# e.g U *-> e : CPR,PWD
+# e authenticates U on CPR,PWD
+
+### authenticates && secret
+# e.g U *->* e : CPR,PWD
+# e authenticates U on CPR,PWD
+
+###Test-1 of secret
+#CPR,PWD secret between U,e     # U ->* e : CPR,PWD
+                                # e ->* U : CPR,PWD
+
+###Test-2 of authenticates
+#e authenticates U on CODE  # U *->* e : CODE // holds
+#U authenticates e on CODE # e *->* U : CODE // violates due to replay
+#CODE secret between U,e
+
+###Shared key encryption single send and recive Protocol - from e to U
+#  only U *->* e : - e authenticates U on sth. sth //holds
+#  e *->* U : sth - U authenticates e on sth       // violates the strong_auth
+
+###Test-3 of authenticates failed due to replay attack on nounce exhanging
+#e authenticates U on CODE  # U *->* e : CODE // holds
+U authenticates e on CODE # e *->* U : CODE // violates due to replay
+CODE secret between U,e

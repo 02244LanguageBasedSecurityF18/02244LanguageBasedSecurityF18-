@@ -1,0 +1,26 @@
+Protocol : DH
+
+#Thus, we can summarize Diffie-Hellman very generally by saying:
+#Diffie-Hellman creates secure channels from authentic channels.
+
+Types : Agent A , B ;
+Number X ,Y ,g , MsgA , MsgB ;
+Function pk ;
+Knowledge : A : A ,B , pk ( A ) , pk ( B ) , inv ( pk ( A )) , g ;
+B : A ,B , pk ( A ) , pk ( B ) , inv ( pk ( B )) , g
+where A != B
+Actions :
+A -> B : {A ,B , exp (g , X )} inv ( pk ( A ))
+B -> A : {A ,B , exp (g , Y )} inv ( pk ( B ))
+A -> B : {| A ,B , MsgA |} exp ( exp (g , X ) , Y )
+B -> A : {| B ,A , MsgB |} exp ( exp (g , X ) , Y )
+Goals :
+
+A authenticates B on exp ( exp (g , X ) , Y ) , MsgB, B #B *->* A : MsgB
+B authenticates A on exp ( exp (g , X ) , Y ) , MsgA, A #A *->* B : MsgA
+exp ( exp (g , X ) , Y ) secret between A , B
+MsgA secret between A , B
+MsgB secret between A , B
+
+#B *->* A : MsgB - B weakly authenticates A on MsgA, MsgA secret between A,B
+#A *->* B : MsgA - A weakly authenticates B on Msgb, MsgB secret between A,B

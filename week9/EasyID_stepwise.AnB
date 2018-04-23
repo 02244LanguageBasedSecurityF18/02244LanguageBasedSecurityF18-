@@ -1,0 +1,71 @@
+
+Protocol: EasyID
+
+
+
+Types: Agent U,W,e;
+       Number CPR, PWD, CODE, X, Y, Z,Nu,Nw;
+       Function pk,sk,pre,mac;
+       Symmetric_key Ktemp
+
+#Initial Knowledge problem on CPR and PWD
+Knowledge: U: W,U,e,pk(W),pk(e), g, sk(U,e),mac,pre; #sk(U,e) modeling user name and
+                                                     #password, U-username is the CPR
+           W: W,U,e,pk(e),pk(W),inv(pk(W)), g,pre;
+           e: W,U,e,pk(e),pk(W),inv(pk(e)), g,sk(U,e),mac,pre
+where U != W
+
+Actions:
+### DH helps the issue of the strong authentication,
+### to make intruder not be able to do the replay attatck
+### Pure shared key encryption havs the replay attatck issue
+#U -> e: {| U,e, exp(g,X) |}sk(U,e)
+#e -> U: { U,e, exp(g,Z) }inv(pk(e))
+
+#U -> e: {| U,e, CPR,PWD |}exp(exp(g,X), Z)
+#e -> U: {| e,U, CODE |}exp(exp(g,Z), X)
+
+U -> W: { U,Nu }pk(W)
+
+W -> e: { W,e, exp(g,Y) }inv(pk(W))
+e -> W: { W,e, exp(g,Z) }inv(pk(e))
+
+W -> e: {| U,W,e,Nu,Nw |}exp(exp(g,Y), Z)
+
+e -> W: {| U,W,e,Nu,Nw, {| U,W,Nu,Nw |}sk(U,e) |}exp(exp(g,Z), Y)
+W -> U: {| U,W,Nu,Nw |}sk(U,e)
+
+U -> W: { { {| U,W,CPR,PWD,Nu,Nw |}sk(U,e) }pk(e) }pk(W)
+W -> e: {| U,W,e,Nu,Nw, { {| U,W,CPR,PWD,Nu,Nw |}sk(U,e) }pk(e) |}exp(exp(g,Y), Z)
+
+e -> W: {| U,W,e,Nu,Nw, {| U,W,CODE,Nu,Nw |}sk(U,e) |}exp(exp(g,Z), Y)
+W -> U: {| U,W,CODE,Nu,Nw |}sk(U,e)
+
+U -> W: { { {| U,W,Nu,Nw, mac(sk(U,e),CODE) |}sk(U,e) }pk(e) }pk(W)
+W -> e: {| U,W,e,Nu,Nw, { {| U,W,Nu,Nw, mac(sk(U,e),CODE) |}sk(U,e) }pk(e) |}exp(exp(g,Y), Z)
+
+e -> W: {| U,W,e,Nu,Nw, { U,W,Nu,Nw,Ktemp }inv(pk(e)), {| U,W,Nu,Nw,Ktemp |}sk(U,e) |}exp(exp(g,Z), Y)
+W -> U: {| U,W,Nu,Nw,Ktemp |}sk(U,e)
+
+Goals:
+
+U authenticates e on Nu,Nw,W,Ktemp
+W authenticates e on Nu,Nw,U,Ktemp
+Nu,Nw,Ktemp secret between U,W
+
+#U authenticates e on Nu,Nw
+#W authenticates e on Nu,Nw
+#Nu,Nw secret between U,W
+
+#e authenticates U on CPR,PWD # U *->* e : CPR,PWD
+#CPR,PWD secret between U,e
+
+#U authenticates e on CODE    # e *->* U : CODE
+#CODE secret between U,e
+
+#e authenticates U on mac(sk(U,e),CODE) # U *->* e : mac(sk(U,e),CODE)
+#mac(sk(U,e),CODE) secret between U,e
+
+#W authenticates e on Ktemp,U
+#U authenticates e on Ktemp,W
+#Ktemp secret between U,W,e

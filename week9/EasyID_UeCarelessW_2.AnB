@@ -1,0 +1,55 @@
+
+Protocol: EasyID
+
+### Intruder pretend the Website, the CODE replied from the EID has been replayed
+#   Consequence is that the challange CODE ran out due to the replay attatck.
+
+Types: Agent U,W,e;
+       Number CPR, PWD, CODE, X, Y, Z;
+       Function pk,sk,pre,mac;
+       Symmetric_key Ktemp
+
+#Initial Knowledge problem on CPR and PWD
+Knowledge: U: W,U,e,pk(W),pk(e), g, sk(U,e),mac,pre; #sk(U,e) modeling user name and
+                                                     #password, U-username is the CPR
+           W: W,U,e,pk(e),pk(W),inv(pk(W)), g;
+           e: W,U,e,pk(e),pk(W),inv(pk(e)), g,sk(U,e),mac,pre
+where U != W
+
+
+Actions:
+### DH helps the issue of the strong authentication,
+### to make intruder not be able to do the replay attatck
+### Pure shared key encryption havs the replay attatck issue
+#U -> e: {| U,e, exp(g,X) |}sk(U,e)
+#e -> U: { U,e, exp(g,Z) }inv(pk(e))
+
+#U -> e: {| U,e, CPR,PWD |}exp(exp(g,X), Z)
+#e -> U: {| e,U, CODE |}exp(exp(g,Z), X)
+
+U -> W: { U,W, { U,e, {| CPR,PWD |}sk(U,e) }pk(e) }pk(W)
+W -> e: { U,e, {| CPR,PWD |}sk(U,e) }pk(e)
+
+e -> W: { W,e, {| CODE |}sk(U,e) }pk(W)
+W -> U: {| CODE |}sk(U,e)
+
+#U -> W: { U,W, { U,e, {| mac(sk(U,e),CODE) |}sk(U,e) }pk(e) }pk(W)
+#W -> e: { U,e, {| mac(sk(U,e),CODE) |}sk(U,e) }pk(e)
+
+#e -> W: { W,e, { U,W,Ktemp }inv(pk(e)), {| U,W,Ktemp |}sk(U,e) }pk(W)
+#W -> U: {| U,W,Ktemp |}sk(U,e)
+
+Goals:
+
+e authenticates U on CPR,PWD # U *->* e : CPR,PWD
+CPR,PWD secret between U,e
+
+U authenticates e on CODE    # e *->* U : CODE
+CODE secret between U,e
+
+#e authenticates U on mac(sk(U,e),CODE) # U *->* e : mac(sk(U,e),CODE)
+#mac(sk(U,e),CODE) secret between U,e
+
+#W authenticates e on Ktemp,U
+#U authenticates e on Ktemp,W
+#Ktemp secret between U,W,e

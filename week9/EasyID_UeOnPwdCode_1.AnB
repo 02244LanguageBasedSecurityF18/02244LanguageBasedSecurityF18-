@@ -1,0 +1,34 @@
+
+Protocol: EasyID
+
+Types: Agent U,W,e;
+       Number CPR, PWD, CODE, ANSWER, X, Y, Z, Ktemp,Ne;
+       Function pk,sk,pre
+       #Symmetric_key Ktemp
+
+#Initial Knowledge problem on CPR and PWD
+Knowledge: U: W,U,e,pk(W),pk(e), g, sk(U,e),mac,pre; #sk(U,e) modeling user name and
+                                             #password, U-username is the CPR
+           W: W,U,e,pk(e),pk(W),inv(pk(W)), g;
+           e: W,U,e,pk(e),pk(W),inv(pk(e)), g,sk(U,e),mac,pre
+where U != W
+
+Actions:
+### DH helps the issue of the strong authentication,
+### to make intruder not be able to do the replay attatck
+### Pure shared key encryption havs the replay attatck issue
+U -> e: {| U,e, exp(g,X) |}sk(U,e)
+e -> U: { U,e, exp(g,Z) }inv(pk(e))
+
+U -> e: {| U,e, CPR,PWD |}exp(exp(g,X), Z)
+e -> U: {| e,U, CODE |}exp(exp(g,Z), X)
+
+
+Goals:
+
+# Trivial DH between U and e of CPR,PWD
+U authenticates e on CODE     # e *->* U : CODE
+e authenticates U on CPR,PWD  # U *->* e : CPR,PWD
+CPR,PWD,CODE secret between U,e
+
+# teletype token a1c2a42c4b2b618fa6e0578bb11ed6906ced589d
