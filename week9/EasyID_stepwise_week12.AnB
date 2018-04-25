@@ -12,32 +12,34 @@ where U != W
 
 Actions:
 ### DH helps the issue of the strong authentication,
-### to make intruder not be able to do the replay attatck
-### Pure shared key encryption havs the replay attatck issue
+### to make intruder not be able to do the replay attack
+### Pure shared key encryption has the replay attack issue
 #U -> e: {| U,e, exp(g,X) |}sk(U,e)
 #e -> U: { U,e, exp(g,Z) }inv(pk(e))
 
 #U -> e: {| U,e, CPR,PWD |}exp(exp(g,X), Z)
 #e -> U: {| e,U, CODE |}exp(exp(g,Z), X)
 
-W -> U: { W,Nw }inv(pk(W))                                     # If U is CPR, W knows CPR already.
+W -> U: { W,Nw }inv(pk(W))                              # If U is CPR, W knows CPR already.
 
-U -> e: { U,W,Nu,Nw, sk(U,e) }pk(e) # the model of password sk(U,e)
-e -> U: {| U,W,Nu,Nw, CODE |}kUe(Nu,Nw, sk(U,e))               #check with sebastian
-U -> e: {| U,W,Nu,Nw, mac(sk(U,e), CODE) |}kUe(Nu,Nw, sk(U,e)) #mac(sk(U,e), CODE)
+U -> e: { U,W,Nu,Nw, sk(U,e) }pk(e)                     # The model of password: sk(U,e)
+e -> U: {| U,W,CODE |}kUe(Nu,Nw, sk(U,e))               # Check with sebastian
+U -> e: {| U,W,mac(sk(U,e), CODE) |}kUe(Nu,Nw, sk(U,e)) # mac(sk(U,e), CODE)
 
-e -> W: { W,e, exp(g,Z) }inv(pk(e))
-W -> e: { W,e, exp(g,Y) }inv(pk(W))
+#e -> W: { W,e, exp(g,Z) }inv(pk(e))
+#W -> e: { W,e, exp(g,Y) }inv(pk(W))
 
-e -> W: {| U,W,Nu,Nw,Ktemp, {| U,W,Nu,Nw, Ktemp |}kUe(Nu,Nw, sk(U,e)) |}exp(exp(g,Z), Y)
-W -> U: {| U,W,Nu,Nw, Ktemp |}kUe(Nu,Nw, sk(U,e))
+#e -> W: {| U,W,Nu,Nw,Ktemp, {| U,W,Ktemp |}kUe(Nu,Nw, sk(U,e)) |}exp(exp(g,Z), Y)
+
+e -> W: { { U,W,Nw,Ktemp }pk(W), {| U,W,Ktemp |}kUe(Nu,Nw, sk(U,e)) }inv(pk(e))
+W -> U: {| U,W,Ktemp |}kUe(Nu,Nw, sk(U,e))
 U -> W: {| PMS |}Ktemp
 
 Goals:
 
 U authenticates e on W,Ktemp
 W authenticates e on U,Ktemp
-Ktemp secret between U,W,e
+U,Ktemp secret between U,W,e
 
 W authenticates U on PMS
 PMS secret between U,W
