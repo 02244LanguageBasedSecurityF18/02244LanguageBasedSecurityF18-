@@ -1,0 +1,19 @@
+Protocol: EasyID
+
+Types: Agent A,B;
+       Number M;
+       Function pk, sk;
+       Symmetric_key Ktemp
+
+Knowledge: A: A, pk(A), inv(pk(A));
+           B: B, pk(B), inv(pk(B));
+#where U != W
+#given
+Actions:
+
+A *-> B : pk(A)
+B -> A : { M }pk(A)
+
+Goals:
+
+B ->* A: M

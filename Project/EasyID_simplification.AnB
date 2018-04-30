@@ -1,7 +1,7 @@
 Protocol: EasyID
 
 Types: Agent U, W, e;
-       Number CODE, Nu, Nw, PMS;
+       Number CODE, Nu, Nw;
        Function pk, sk, kUE, mac;
        Symmetric_key KWU
 
@@ -20,13 +20,7 @@ U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(Nu,Nw, sk(U,e))  # replace the modeled pa
 
 e -> W: { { U,W,Nw,KWU }pk(W), {| U,W,KWU |}kUE(Nu,Nw, sk(U,e)) }inv(pk(e))
 W -> U: {| U,W,KWU |}kUE(Nu,Nw, sk(U,e))
-U -> W: {| PMS |}KWU
 
 Goals:
 
-U authenticates e on W,KWU
-W authenticates e on U,KWU
 U,KWU secret between U,W,e
-
-W authenticates U on PMS
-PMS secret between U,W

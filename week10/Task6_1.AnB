@@ -23,4 +23,6 @@ Goals:
 #A *->* B: NA
 #B *->* A: NB
 
-KAB secret between A,B
+A authenticates s on pk(B)
+B authenticates A on KAB
+KAB,pk(B) secret between A,B
