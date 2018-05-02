@@ -7,8 +7,8 @@ Types: Agent A,B;
 
 Knowledge: A: A, pk(A), inv(pk(A));
            B: B, pk(B), inv(pk(B));
-#where U != W
-#given
+#where A != B
+
 Actions:
 
 A *-> B : pk(A)

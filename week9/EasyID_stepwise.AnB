@@ -22,7 +22,7 @@ Actions:
 
 W -> U: { W,Nw }inv(pk(W))                              # If U is CPR, W knows CPR already.
 
-U -> e: { U,W,Nu,Nw }pk(e)                     # The model of password: sk(U,e)
+U -> e: { U,W,Nu,Nw }pk(e)                              # The model of password: sk(U,e)
 e -> U: {| U,W,CODE |}kUe(Nu,Nw, sk(U,e))               # Check with sebastian
 U -> e: {| U,W,mac(sk(U,e), CODE) |}kUe(Nu,Nw, sk(U,e)) # mac(sk(U,e), CODE)
 
