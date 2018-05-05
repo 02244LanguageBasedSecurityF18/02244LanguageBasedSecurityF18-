@@ -1,7 +1,7 @@
 Protocol: EasyID
 
 Types: Agent U, W, e;
-       Number CODE, Nu, Nw;
+       Number CODE, NU, NW;
        Function pk, sk, kUE, mac;
        Symmetric_key KWU
 
@@ -11,12 +11,12 @@ Knowledge: U: U,W,e,pk(W),pk(e),sk(U,e),kUE,mac,sUE(U);
 where U != W
 
 Actions:
-W -> U: { W,Nw }inv(pk(W))
-U -> e: { U,W,Nu,Nw,sk(U,e) }pk(e)
-e -> U: {| CODE |}kUE(Nu,sk(U,e))
-U -> e: {| mac(sUE(U),CODE) |}kUE(Nu,sk(U,e))
-e -> W: { { U,Nw,KWU }pk(W), {| KWU |}kUE(Nu,sk(U,e)) }inv(pk(e))
-W -> U: {| KWU |}kUE(Nu,sk(U,e))
+W -> U: { W,NW }inv(pk(W))
+U -> e: { U,W,NU,NW,sk(U,e) }pk(e)
+e -> U: {| CODE |}kUE(NU,sk(U,e))
+U -> e: {| mac(sUE(U),CODE) |}kUE(NU,sk(U,e))
+e -> W: { { U,NW,KWU }pk(W), {| KWU |}kUE(NU,sk(U,e)) }inv(pk(e))
+W -> U: {| KWU |}kUE(NU,sk(U,e))
 
 Goals:
 U authenticates e on W,KWU
