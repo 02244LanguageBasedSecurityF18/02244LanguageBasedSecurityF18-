@@ -13,10 +13,10 @@ where U != W
 Actions:
 W -> U: { W,Nw }inv(pk(W))
 U -> e: { U,W,Nu,Nw,sk(U,e) }pk(e)
-e -> U: {| CODE |}kUE(Nu,Nw,sk(U,e))
-U -> e: {| mac(sUE(U),CODE) |}kUE(Nu,Nw,sk(U,e))
-e -> W: { { U,Nw,KWU }pk(W), {| KWU |}kUE(Nu,Nw,sk(U,e)) }inv(pk(e))
-W -> U: {| KWU |}kUE(Nu,Nw,sk(U,e))
+e -> U: {| CODE |}kUE(Nu,sk(U,e))
+U -> e: {| mac(sUE(U),CODE) |}kUE(Nu,sk(U,e))
+e -> W: { { U,Nw,KWU }pk(W), {| KWU |}kUE(Nu,sk(U,e)) }inv(pk(e))
+W -> U: {| KWU |}kUE(Nu,sk(U,e))
 
 Goals:
 U authenticates e on W,KWU
