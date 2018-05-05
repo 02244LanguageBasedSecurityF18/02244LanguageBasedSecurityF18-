@@ -1,9 +1,9 @@
 Protocol: EasyID
 
 Types: Agent U, W, e;
-       Number CODE, Nu, Nw;
+       Number CODE, NU, NW;
        Function pk, sk, kUE, mac;
-       Symmetric_key KWU
+       #Symmetric_key KWU
 
 Knowledge: U: U,W,e,pk(W),pk(e),sk(U,e),kUE,mac,sUE(U);
            W: U,W,e,pk(W),pk(e),inv(pk(W));
@@ -12,14 +12,14 @@ where U != W
 
 Actions:
 
-W -> U: { W,Nw }inv(pk(W))
+W -> U: { W,NW }inv(pk(W))
 
-U -> e: { U,W,Nu,Nw, sk(U,e) }pk(e)                     # The model of password: sk(U,e)
-e -> U: {| U,W,CODE |}kUE(Nu,Nw, sk(U,e))
-U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(Nu,Nw, sk(U,e))  # replace the modeled password with other shared secret could prevent the dictionary attack.
+U -> e: { U,W,NU,NW, sk(U,e) }pk(e)                     # The model of password: sk(U,e)
+e -> U: {| U,W,CODE |}kUE(NU,NW, sk(U,e))
+U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(NU,NW, sk(U,e))  # replace the modeled password with other shared secret could prevent the dictionary attack.
 
-e -> W: { { U,W,Nw,KWU }pk(W), {| U,W,KWU |}kUE(Nu,Nw, sk(U,e)) }inv(pk(e))
-W -> U: {| U,W,KWU |}kUE(Nu,Nw, sk(U,e))
+e -> W: { { U,W,NW,KWU }pk(W), {| KWU |}kUE(NU,NW, sk(U,e)) }inv(pk(e))
+W -> U: {| KWU |}kUE(NU,NW, sk(U,e))
 
 Goals:
 

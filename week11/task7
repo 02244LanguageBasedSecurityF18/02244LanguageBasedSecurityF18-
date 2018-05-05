@@ -7,12 +7,13 @@ Dishonest = {...};
 Agent = Honest ++ Dishonest;
 
 Functions:
-public crypt/2, acrypt/2, pair/2, pk/1, sk/2, kUE/3;
-private inv/1, nw/2, nu/2, ne/2, sUE/2;
+public crypt/2, acrypt/2, pair/2, pk/1, sk/2, kUE/3, mac/2;
+private inv/1, nw/2, nu/2, ne/2, sUE/2, kWU/2;
 
 Facts:
 iknows/1, attack/0, secret/3;
 
+%left-hanside left blank means right-handside holds unconditionally
 Rules:
 agents(A: Agent)
 => iknows(A);
@@ -64,24 +65,34 @@ W -> U: {| U,W,KWU |}kUE(Nu,Nw, sk(U,e))
 easyID1(W: Agent, U: Agent)
 => iknows(acrypt(inv(pk(W)),pair(W,nw(W,U))));
 
-easyID2(U: Agent, W: Agent, E: Honest, NW: untyped)
+easyID2(U: Agent, W: Agent, e: Honest, NW: untyped)
 iknows(acrypt(inv(pk(W)),pair(W,NW)))
-=> iknows(acrypt(pk(e),pair(U,pair(W,pair(nu(U,E),pair(NW,sk(U,E)))))));
+=> iknows(acrypt(pk(e), pair(U, pair(W, pair(nu(U,e), pair(NW,sk(U,e)))))));
 
-easyID3(U: Agent, W: Agent, E: Honest, NU: untyped, NW: untyped)
-iknows(acrypt(pk(e),pair(U,pair(W,pair(NU,pair(NW,sk(U,E)))))))
-=> iknows(crypt(kUE(NU,NW,sk(U,E)),pair(U,pair(W,ne(E,U)))));
+easyID3(U: Agent, W: Agent, e: Honest, NU: untyped, NW: untyped)
+iknows(acrypt(pk(e), pair(U, pair(W, pair(NU, pair(NW, sk(U,e)))))))
+=> iknows(crypt(kUE(NU,NW,sk(U,e)), pair(U, pair(W, ne(e,U)))));
 
-easyID4(U: Agent, W: Agent, E: Honest, NU: untyped, NW: untyped, CODE: untyped)
-iknows(crypt(kUE(NU,NW,sk(U,E)),pair(U,pair(W,CODE))))
-=> iknows(crypt(kUE(NU,NW,sk(U,E)),pair(U,pair(W,CODE)))));
+easyID4(U: Agent, W: Agent, e: Honest, NU: untyped, NW: untyped, CODE: untyped)
+iknows(crypt(kUE(NU,NW,sk(U,e)), pair(U, pair(W, CODE))));
+=> iknows(crypt(kUE(NU,NW,sk(U,e)), pair(U, pair(W, mac(sUE(U), CODE))))
 
-easyID5
+easyID5(U: Agent, W: Agent, e: Honest, NW: untyped, CODE: untyped)
+iknows(crypt(kUE(NU,NW,sk(U,e)), pair(U, pair(W, mac(sUE(U), CODE))))
+=> iknows(acrypt(inv(pk(e)), pair(acrypt(pk(W), pair(U, pair(W, pair(NW,kWU(W,U))))), crypt(kUE(NU,NW,sk(U,E), pair(U, pair(W, KWU)))))
 
-easyID6
+easyID6(U: Agent, W: Agent, e: Honest, NW: untyped)
+iknows(acrypt(inv(pk(e)), pair(acrypt(pk(W), pair(U, pair(W, pair(NW,kWU(W,U))))), crypt(kUE(NU,NW,sk(U,E), pair(U, pair(W, KWU)))))
+=> iknows(crypt(kUE(Nu,Nw,sk(U,e))), pair(U, pair(W, kWU(W,U)))
 
 secrecy1(W: Honest, U: Honest)
 iknows(nw(W,U)) => attack;
 
-secrecy2(U: Honest, E: Honest)
-iknows(nu(U,E)) => attack;
+secrecy2(U: Honest, e: Honest)
+iknows(nu(U,e)) => attack;
+
+secrecy3(U: Honest, e: Honest)
+iknows(ne(e,U)) => attack;
+
+secrecy4(U: Honest, e: Honest)
+iknows(kWU(W,U)) => attack
