@@ -1,7 +1,7 @@
 Protocol: EasyID
 
 Types: Agent U, W, e;
-       Number CODE, Nu, Nw, PMS;
+       Number CODE, NU, NW, PMS;
        Function pk, sk, kUE, mac;
        Symmetric_key KWU
 
@@ -12,21 +12,17 @@ where U != W
 
 Actions:
 
-W -> U: { W,Nw }inv(pk(W))
+W -> U: { W,NW }inv(pk(W))
 
-U -> e: { U,W,Nu,Nw, sk(U,e) }pk(e)                     # The model of password: sk(U,e)
-e -> U: {| U,W,CODE |}kUE(Nu,Nw, sk(U,e))
-U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(Nu,Nw, sk(U,e))  # replace the modeled password with other shared secret could prevent the dictionary attack.
+U -> e: { U,W,NU,NW, sk(U,e) }pk(e)                     # The model of password: sk(U,e)
+e -> U: {| U,W,CODE |}kUE(NU,NW, sk(U,e))
+U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(NU,NW, sk(U,e))  # replace the modeled password with other shared secret could prevent the dictionary attack.
 
-e -> W: { { U,W,Nw,KWU }pk(W), {| U,W,KWU |}kUE(Nu,Nw, sk(U,e)) }inv(pk(e))
-W -> U: {| U,W,KWU |}kUE(Nu,Nw, sk(U,e))
-U -> W: {| PMS |}KWU
+e -> W: { { U,W,NW,KWU }pk(W), {| U,W,KWU |}kUE(NU,NW, sk(U,e)) }inv(pk(e))
+W -> U: {| U,W,KWU |}kUE(NU,NW, sk(U,e))
 
 Goals:
 
 U authenticates e on W,KWU
 W authenticates e on U,KWU
 U,KWU secret between U,W,e
-
-W authenticates U on PMS
-PMS secret between U,W
