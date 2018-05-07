@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+INP="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+####was: INP="$(realpath $1)"
+PRV="$(mktemp)"
+LOG="$(mktemp)"
+echo 'INP:' $INP
+echo 'PRV:' $PRV
+echo 'LOG:' $LOG
+echo "lala" aifomega "$INP" > "$PRV"
+aifomega "$INP" > "$PRV"
+time proverif -in horn "$PRV" > "$LOG"
+RES=$(grep RESULT "$LOG")
+echo $RES
+echo $RES | grep -q unreachable

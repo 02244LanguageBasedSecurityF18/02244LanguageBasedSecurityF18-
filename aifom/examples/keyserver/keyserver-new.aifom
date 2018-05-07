@@ -1,0 +1,114 @@
+Problem: zebsKeyserver;
+
+Types:
+
+% We assume an infinite set of honest agents
+Honest = {...};
+
+% We assume an infinite set of dishonest agents (they all are
+%  controlled by the intruder)
+Dishon = {...};
+
+% Also we have no bound on the number of key servers.
+Server = {...};
+
+User   = Honest ++ Dishon;
+Agent  = Honest ++ Server ++ Dishon;
+Sts    = {valid,revoked};
+
+Sets:
+
+% Each user has a key ring of public keys (and implicitly knows the
+% corresponding private key).
+ring(User),
+
+% Also each server has a data-base that yields for each user and
+% status (valid or revoked) the set of public keys that are currently
+% registered for that user and that status.
+db(Server,User,Sts);
+
+Functions:
+% Signature and pair
+public sign/2, pair/2;
+% Function from public to private keys
+private inv/1;
+
+Facts:
+
+% iknows stands for "intruder knows" and attack is of course the
+%  main predicate to check for, i.e., the goal is that it does not
+%  occur in any reachable state.
+
+iknows/1, attack/0;
+
+Rules:
+
+% The intruder knows all agents:
+
+iAgents(A: Agent)
+  => iknows(A);
+
+% Standard Dolev-Yao model:
+
+iOpen(M1: untyped, M2: untyped)
+  iknows(sign(M1,M2)) => iknows(M2);
+iSign(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(sign(M1,M2));
+iProj(M1: untyped, M2: untyped)
+  iknows(pair(M1,M2)) => iknows(M1).iknows(M2);
+iPair(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(pair(M1,M2));
+
+% The intruder can generate new key pairs; they are stored in a key
+% ring of a dishonest agent.
+
+intruderGen(A:Dishon,PK:value)
+  =[PK]=> iknows(PK).iknows(inv(PK)).PK in ring(A);
+
+% keyReg models that an honest user generates a fresh key pair and
+% registers it with the key server out-of-band. That the user knows
+% the corresponding private key is implicit (we do not reason about
+% the knowledge of honest agents):
+
+keyRegHonest(A:Honest, S:Server, PK:value)
+  =[PK]=> iknows(PK).PK in ring(A).PK in db(S,A,valid);
+
+% Also the intruder can register any public key he knows (even if he
+% does not know the corresponding private key) with the server under
+% the name of any dishonest agent:
+
+keyRegDish(A:Dishon, S:Server, PK:value)
+  iknows(PK).PK notin db(_,_,_) => PK in db(S,A,valid);
+
+% Update rule for the honest users: generate a new key, generate an
+% update message for the server that contains the new key and is
+% signed by a current key and replace the current key with the new key
+% in the key ring. Of course, a more realistic protocol would contain
+% an acknowledgement from the server and the agent would keep the key
+% until then.
+
+userUpdateKey(A: Honest, S: Server, PK: value, NPK: value)
+  iknows(PK).PK in ring(A)
+    =[NPK]=> NPK in ring(A).iknows(sign(inv(PK),pair(A,NPK)));
+
+% The next rule is about the server receiving the update. This should
+% only be performed if the signing key is registered as valid for A
+% and NPK is not yet known to a server as valid or revoked of any
+% user. If so, the respective update is made, storing the current key
+% as revoked and the new key as valid. As an additional test, we give
+% the intruder the private key of the just revoked key (even though
+% the server cannot actually do that, and should not); it is just to
+% prove that the protocol is secure even if private keys of revoked
+% keys can get lost.
+
+serverUpdateKey(A: User, S: Server, PK: value, NPK: value)
+  iknows(sign(inv(PK),pair(A,NPK))).PK in db(S,A,valid).
+  NPK notin db(_,_,_)
+    => PK in db(S,A,revoked).NPK in db(S,A,valid).iknows(inv(PK));
+
+% Finally, we define that it is an attack if the intruder finds the
+% private key to a public key that is registered as valid for an
+% honest agent.
+
+attackDef(S: Server, H: Honest, PK: value)
+  iknows(inv(PK)).PK in db(S,H,valid) => attack;

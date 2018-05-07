@@ -18,8 +18,8 @@ U -> e: { U,W,NU,NW, sk(U,e) }pk(e)                     # The model of password:
 e -> U: {| U,W,CODE |}kUE(NU,NW, sk(U,e))
 U -> e: {| U,W,mac(sUE(U), CODE) |}kUE(NU,NW, sk(U,e))  # replace the modeled password with other shared secret could prevent the dictionary attack.
 
-e -> W: { { U,W,NW,KWU }pk(W), {| KWU |}kUE(NU,NW, sk(U,e)) }inv(pk(e))
-W -> U: {| KWU |}kUE(NU,NW, sk(U,e))
+e -> W: { { U,W,NW,NU,KWU }pk(W), {| U,W,KWU |}kUE(NU,NW, sk(U,e)) }inv(pk(e))
+W -> U: {| U,W,KWU |}kUE(NU,NW, sk(U,e))
 
 Goals:
 

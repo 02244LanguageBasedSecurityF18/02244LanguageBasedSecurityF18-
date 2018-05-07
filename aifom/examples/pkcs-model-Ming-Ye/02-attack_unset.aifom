@@ -1,0 +1,56 @@
+Problem: ATTACK_UNSET;
+
+Types: 
+TOKEN = {token1};
+
+Sets: 
+extract(TOKEN),		                  
+wrap(TOKEN),
+decrypt(TOKEN),
+sensitive(TOKEN);
+
+Functions:
+public senc/2, h/1;
+private inv/1; 
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+iik1(K1:value)
+=[K1]=>K1 in sensitive(token1).K1 in extract(token1).iknows(h(K1));
+iik2(K2:value)
+=[K2]=>K2 in wrap(token1).iknows(h(K2));
+
+% ======================wrap================
+wrap(K1:value, K2:value)
+iknows(h(K1)).K1 in extract(token1).K2 in wrap(token1).iknows(h(K2)) 
+=> iknows(senc(K1,K2)).K2 in wrap(token1).K1 in extract(token1);
+
+% ======================set wrap================
+setwrap(K2:value)
+K2 notin decrypt(token1).iknows(h(K2))=>K2 in wrap(token1);
+
+% ======================unset wrap================
+unsetwrap(K2:value)
+K2 in wrap(token1).iknows(h(K2))=> iknows(i);
+
+% ======================set decrypt================
+setdecrypt(K2:value)
+K2 notin wrap(token1).iknows(h(K2))=>K2 in decrypt(token1);
+
+% ======================unset decrypt================
+unsetdecrypt(K2:value)
+K2 in decrypt(token1).iknows(h(K2))=> iknows(i);
+
+% ======================decrypt================
+decrypt1(K2:value,M:untyped)
+K2 in decrypt(token1).iknows(h(K2)).iknows(senc(M,K2)) =>iknows(M).K2 in decrypt(token1);
+decrypt2(K2:value,M:untyped)
+iknows(senc(M,K2)).iknows(K2)=>iknows(M);
+
+% ======================attacks================
+attack(K1:value)
+K1 in sensitive(token1).iknows(K1)
+=>
+attack;

@@ -1,0 +1,45 @@
+% Simple Security Device example modeled after
+% StatVerif: Verification of Stateful Processes
+% M. Arapinis, E. Ritter, M. Ryan, CSF 2011
+Problem: simpleSecurityDevice;
+% The left and right sets are used to record the state of nonces
+Sets: left, right;
+% The constructors l, r, and f represent the left and right projections and a
+% format that combines a security token and nonce, respectively
+Functions: l/1, r/1, f/2;
+% Facts: `iknows` for intruder knowledge, `msg` stores a message and its two
+% projections, and `attack` is the attacker predicate
+Facts: iknows/1, msg/3, attack/0;
+
+Rules:
+
+% The attacker can construct arbitrary messages
+init(M:value)
+  =[M]=>iknows(M);
+
+% The security device can construct the left and right projections for a
+% combination of `M` (the message received) and `S` (the security token)
+secrets(M: value, S:value)
+  iknows(M) =[S]=> msg(M, l(f(S,M)), r(f(S,M)));
+
+% These two transitions model the request of the left and the right
+% projections, respectively
+leftProjection(M: value)
+  M notin left . M notin right => M in left;
+rightProjection(M: value)
+  M notin left . M notin right => M in right;
+
+% If the left (resp. right) projection is requested, then we reveal the left
+% (resp. right) projection to the attacker.
+revealLeft(M: value, S: value)
+  M in left . msg(M, l(f(S,M)), r(f(S,M)))
+    => iknows(l(f(S,M))) . M in left;
+revealRight(M: value, S: value)
+  M in right . msg(M, l(f(S,M)), r(f(S,M)))
+    => iknows(r(f(S,M))) . M in right;
+
+% It is an attack in the system if the attacker knows both the left and right
+% projections for the same combination of message `M` and token `S`
+attackDef(M: value, S: value)
+  iknows(l(f(S,M))) . iknows(r(f(S,M)))
+    => attack;

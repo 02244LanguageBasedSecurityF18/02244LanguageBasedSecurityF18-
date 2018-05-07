@@ -1,0 +1,50 @@
+Problem: zebsKeyserver;
+
+Types:
+Honest = {...};
+Dishon = {...};
+Server = {...};
+User   = Honest ++ Dishon;
+Agent  = Honest ++ Server ++ Dishon;
+Sts    = {valid,revoked};
+
+Sets:
+ring(User), db(Server,User,Sts);
+
+Functions:
+public sign/2, pair/2;
+private inv/1;
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+
+iAgents(A: Agent)
+  => iknows(A);
+iOpen(M1: untyped, M2: untyped)
+  iknows(sign(M1,M2)) => iknows(M2);
+iSign(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(sign(M1,M2));
+iProj(M1: untyped, M2: untyped)
+  iknows(pair(M1,M2)) => iknows(M1).iknows(M2);
+iPair(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(pair(M1,M2));
+
+keyReg(A:User, S:Server, PK:value)
+  =[PK]=>iknows(PK).PK in ring(A).PK in db(S,A,valid);
+
+dishonKey(A:Dishon, PK:value)
+  iknows(PK).PK in ring(A) => iknows(inv(PK)).PK in ring(A);
+
+userUpdateKey(A: Honest, S: Server, PK: value, NPK: value)
+  iknows(PK).PK in ring(A)
+    =[NPK]=> NPK in ring(A).iknows(sign(inv(PK),pair(A,NPK)));
+
+serverUpdateKey(A: User, S: Server, PK: value, NPK: value)
+  iknows(sign(inv(PK),pair(A,NPK))).PK in db(S,A,valid).
+  NPK notin db(_,_,_)
+    => PK in db(S,A,revoked).NPK in db(S,A,valid).iknows(inv(PK));
+
+attackDef(S: Server, H: Honest, PK: value)
+  iknows(inv(PK)).PK in db(S,H,valid) => attack;

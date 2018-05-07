@@ -1,0 +1,55 @@
+Problem: SYSTEM_PHASE2;
+
+Types: 
+TOKEN ={token1};
+
+Sets: 
+extract(TOKEN),		                   
+wrap(TOKEN),
+unwrap(TOKEN),
+decrypt(TOKEN),
+sensitive(TOKEN);
+
+Functions:
+public senc/2, h/2;
+private inv/1; 
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+iik1(K1:value, N1:value)
+=[K1,N1]=>N1 in sensitive(token1).N1 in extract(token1).iknows(h(N1,K1)).K1 in sensitive(token1);
+iik2(K2:value, N2:value)
+=[K2,N2]=>iknows(h(N2,K2)).N2 in wrap(token1).N2 in extract(token1);
+
+% =====set wrap=====
+setwrap(N2:value, K2:value)
+N2 notin sensitive(token1).N2 notin decrypt(token1).iknows(h(N2,K2)) => N2 in wrap(token1);
+
+% =====set unwrap===
+unsetwrap(N2:value, K2:value)
+N2 notin sensitive(token1).iknows(h(N2,K2)) => N2 in unwrap(token1);
+
+% =====unwrap, generate new handler======
+unwrap(M:untyped,K2:value, N2:value, Nnew:value)
+iknows(senc(M,K2)).N2 in unwrap(token1).iknows(h(N2,K2)).=[Nnew]=> iknows(h(Nnew,M)).N2 in unwrap(token1);
+
+% ======================wrap================
+wrap(K1:value, N1:value, N2:value,K2:value)
+iknows(h(N1,K1)).N1 in extract(token1).N2 in wrap(token1).iknows(h(N2,K2)) 
+=> iknows(senc(K1,K2)).N1 in extract(token1).N2 in wrap(token1);
+
+% =====set decrypt===
+setdecrypt(Nnew:value, K2:value)
+Nnew notin wrap(token1).iknows(h(Nnew,K2)) => Nnew in decrypt(token1);
+
+% ======================decrypt================
+decrypt1(Nnew:value,M:untyped,K2:value)
+Nnew in decrypt(token1).iknows(h(Nnew,K2)).iknows(senc(M,K2)) =>iknows(M);
+decrypt2(M:untyped, K2:value)
+iknows(senc(M,K2)).iknows(K2)=>iknows(M);
+
+% ======================attacks================
+attack(K1:value)
+K1 in sensitive(token1).iknows(K1)=>attack;

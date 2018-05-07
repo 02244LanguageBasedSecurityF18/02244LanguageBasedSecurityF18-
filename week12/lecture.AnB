@@ -11,9 +11,14 @@ Knowledge: A: A, pk(A), inv(pk(A));
 
 Actions:
 
-A *-> B : pk(A)
-B -> A : { M }pk(A)
+### Definition violation, since one is the assumption and the goal is the
+#   same as the assumption.
+#A *-> B : M
+#Goals:
+#A *->* B: M
 
-Goals:
-
-B ->* A: M
+### From authentic channel assumption to derive the confidential channle
+#A *-> B : pk(A)
+#B -> A : { M }pk(A)
+#Goals:
+#B ->* A: M

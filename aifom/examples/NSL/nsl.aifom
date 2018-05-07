@@ -1,0 +1,65 @@
+Problem: NSL;
+% Modeling the NSL protocol with confidential channels
+
+Types:
+Honest = {...};
+Dishon = {...};
+Agent  = Honest ++ Dishon;
+
+Sets:
+challenged(Honest,Agent), responded(Honest,Agent);
+
+Functions:
+public pair/2;
+private inv/1;  %% actually we do not need it...
+
+Facts:
+iknows/1, attack/0, cnfCh/2;
+
+Rules:
+
+% Attacker rules
+a1(A: Agent)
+  => iknows(A);
+a2(M1: untyped, M2: untyped)
+  iknows(pair(M1,M2)) => iknows(M1).iknows(M2);
+a3(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(pair(M1,M2));
+a4(H: Honest, M: untyped)
+  iknows(H).iknows(M) => cnfCh(H,M);
+a5(D: Dishon, M: untyped) cnfCh(D,M) => iknows(M);
+a6(NA: value)
+  =[NA]=> iknows(NA);
+
+% Protocol rules
+step1(A: Honest, B: Agent, NA: value)
+  =[NA]=> cnfCh(B,pair(NA,A)).NA in challenged(A,B);
+
+step2(B: Honest, A: Agent, NA: value, NB: value)
+  cnfCh(B,pair(NA,A)).
+    =[NB]=> cnfCh(A,pair(pair(NA,NB),B)).NB in challenged(B,A);
+
+step3(A: Honest, B: Agent, NA: value, NB: value)
+  cnfCh(A,pair(pair(NA,NB),B)). NA in challenged(A,B)
+    => cnfCh(B,NB).NA in responded(A,B);
+
+%%%%
+step3Check(A: Honest, B: Agent, NA: value, NB: value, A2: Honest, B2:Agent)
+  cnfCh(A,pair(pair(NA,NB),B)). NA in challenged(A,B).
+  NA in responded(A2,B2)
+    => attack;
+
+step3receive(B: Honest, A: Agent, NB: value)
+  cnfCh(B,NB).NB in challenged(B,A)
+    => NB in responded(B,A);
+
+%%%%
+step3receiveCheck(B: Honest, A: Agent, NB: value, A2: Honest, B2: Agent)
+  cnfCh(B,NB).NB in challenged(B,A). NB in responded(A2,B2) => attack;
+
+
+% Attack definition
+att1(A: Honest, B: Honest, NA: value)
+  iknows(NA). NA in challenged(A,B) => attack;
+att2(A: Honest, B: Honest, NA: value)
+  iknows(NA). NA in responded(A,B) => attack;

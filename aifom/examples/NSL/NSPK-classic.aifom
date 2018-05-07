@@ -1,0 +1,57 @@
+Problem: NSPK;
+% Classical model of NSPK (with crypto instead of public key crypto)
+% Finds the classical attack of Lowe
+
+Types:
+Honest = {...};
+Dishon = {...};
+Agent  = Honest ++ Dishon;
+
+Sets:
+challenged(Honest,Agent), responded(Honest,Agent);
+
+Functions:
+public pair/2, crypt/2, pk/1;
+private inv/1;  %% actually we do not need it...
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+
+% Attacker rules
+a1(A: Agent)
+  => iknows(A).iknows(pk(A));
+a1b(A: Dishon)
+  => iknows(inv(pk(A)));
+a2(M1: untyped, M2: untyped)
+  iknows(pair(M1,M2)) => iknows(M1).iknows(M2);
+a3(M1: untyped, M2: untyped)
+  iknows(M1).iknows(M2) => iknows(pair(M1,M2));
+a4(K: untyped, M: untyped)
+  iknows(K).iknows(M) => iknows(crypt(K,M));
+a5(K: untyped, M: untyped) iknows(crypt(K,M)).iknows(inv(K)) => iknows(M);
+a6(NA: value)
+  =[NA]=> iknows(NA);
+
+% Protocol rules
+step1(A: Honest, B: Agent, NA: value)
+  =[NA]=> iknows(crypt(pk(B),pair(NA,A))).NA in challenged(A,B);
+
+step2(B: Honest, A: Agent, NA: value, NB: value)
+  iknows(crypt(pk(B),pair(NA,A))).
+    =[NB]=> iknows(crypt(pk(A),pair(NA,NB))).NB in challenged(B,A);
+
+step3(A: Honest, B: Agent, NA: value, NB: value)
+  iknows(crypt(pk(A),pair(NA,NB))). NA in challenged(A,B)
+    => iknows(crypt(pk(B),NB)).NA in responded(A,B);
+
+step3receive(B: Honest, A: Agent, NB: value)
+  iknows(crypt(pk(B),NB)).NB in challenged(B,A)
+    => NB in responded(B,A);
+
+% Attack definition
+att1(A: Honest, B: Honest, NA: value)
+  iknows(NA). NA in challenged(A,B) => attack;
+att2(A: Honest, B: Honest, NA: value)
+  iknows(NA). NA in responded(A,B) => attack;

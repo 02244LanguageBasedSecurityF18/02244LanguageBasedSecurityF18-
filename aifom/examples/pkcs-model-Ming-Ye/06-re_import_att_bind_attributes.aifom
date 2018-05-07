@@ -1,0 +1,59 @@
+Problem: RE_IMPORT_ATT;
+
+Types: 
+TOKEN ={token1};
+
+Sets: 
+extract(TOKEN),		
+wrap(TOKEN),
+unwrap(TOKEN),
+decrypt(TOKEN),
+sensitive(TOKEN);
+
+Functions:
+public senc/2, h/2, bind/2;
+private inv/1; 
+
+Facts:
+iknows/1, attack/0; 
+
+Rules:
+iik1(K1:value, N1:value)
+=[K1,N1]=>N1 in sensitive(token1).N1 in extract(token1).iknows(h(N1,K1)).K1 in sensitive(token1);
+
+ikk2(K2:value, N2:value)
+=[K2,N2]=>iknows(h(N2,K2)).N2 in wrap(token1).N2 in extract(token1);
+
+% =====set wrap=====
+setwrap(N2:value,K2:value)
+N2 notin sensitive(token1).N2 notin decrypt(token1).iknows(h(N2,K2)) => N2 in wrap(token1);
+
+% =====set unwrap===
+setunwrap(N2:value,K2:value)
+N2 notin sensitive(token1).iknows(h(N2,K2)) => N2 in unwrap(token1);
+
+% =====unwrap, generate new handler======
+unwrap(M2:untyped, K2:value,N1:value, N2:value, Nnew:value)
+iknows(senc(M2,K2)).iknows(bind(N1,M2)).N1 in sensitive(token1).iknows(h(N2,K2)).N2 in unwrap(token1).=[Nnew]=> iknows(h(Nnew,M2)).Nnew in sensitive(token1).N2 in unwrap(token1).N1 in sensitive(token1);
+
+unwrap2(M2:untyped, K2:value, N1:value, N2:value, Nnew:value)
+iknows(senc(M2,K2)).iknows(bind(N1,M2)).N1 notin sensitive(token1).iknows(h(N2,K2)).N2 in unwrap(token1).=[Nnew]=> iknows(h(Nnew,M2)).N2 in unwrap(token1);
+
+% ======================wrap================
+wrap(N1:value, K1:value, N2:value, K2:value)
+iknows(h(N1,K1)).N1 in extract(token1).N2 in wrap(token1).iknows(h(N2,K2)) 
+=> iknows(senc(K1,K2)).N1 in extract(token1).N2 in wrap(token1).iknows(bind(N1,K1));
+
+% =====set decrypt===
+setdecrypt(Nnew:value, K2:value)
+Nnew notin wrap(token1).iknows(h(Nnew,K2)) => Nnew in decrypt(token1);
+
+% ======================decrypt================
+decrypt1(Nnew:value, K2:value, M1:untyped)
+Nnew in decrypt(token1).iknows(h(Nnew,K2)).iknows(senc(M1,K2)) =>iknows(M1);
+decrypt2(M1:untyped,K2:value)
+iknows(senc(M1,K2)).iknows(K2)=>iknows(M1);
+
+% ======================attacks================
+attack(K1:value)
+K1 in sensitive(token1).iknows(K1)=>attack;

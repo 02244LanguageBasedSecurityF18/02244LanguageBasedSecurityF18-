@@ -1,0 +1,200 @@
+Problem: ASW;
+
+Types:
+Honest  = {...};
+Dishon  = {...};
+Agent   = Honest++Dishon;
+Server  = {s};
+All     = Agent++Server;
+
+
+% Status from server's PoV
+SSts    = {aborted,valid};
+% Status from user's PoV
+USts    = {hashed,revealed};
+Sts     = SSts++USts;
+
+%Ag     : {a,i,s};  % Agents
+%H,H2   : {a,s};	   % Honest Agents
+%D      : {i};	   % Dishonest Agents
+%A,B    : {a,i};	   % Users
+%HA,HB  : {a};	   % Honest Users
+%NA,NB : value;
+%M,M1,M2,HNA,HNB  : untyped;
+
+% Each user maintains databases for the nonces that they have seen in
+% exchanges and what status these exchanges have
+
+Sets:
+ idb(Dishon),		% intruders database
+ condb(Honest,Agent,Sts),	% database of an honest user:
+ 			% - name of the user,
+			% - name of the other user with whom the contract is
+			% - status of the respective exchange
+ scondb(Agent,Agent,SSts);       % server's database:
+			% - names of the two users that want to make a contract
+			% - status of the respective exchange
+
+Functions:
+
+% functions that represent (in an abstract way) the message formats:
+public msg1/4, % First message of main protocol (Arguments: 2 users, contract, and hash of a nonce)
+       msg2/3, % Second message (Arguments: signer, message1, and hash of a nonce)
+       contract/2,  % A function that represents the actual contractual text (arguments are the two partner names)
+       h/1;         % hash (for hashing nonces)
+private inv/1;
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+
+%%% Intruder
+iAgent(Ag:All) => iknows(Ag);
+iNonce(NA:value, D:Dishon) =[NA]=> iknows(NA).NA in idb(D);
+iHash(M:untyped) iknows(M) => iknows(h(M));
+iContract(M:untyped, M1:untyped)
+  iknows(M).iknows(M1) => iknows(contract(M,M1));
+iMsg1c(D:Dishon, HB: Honest, M1:untyped, M2:untyped)
+  iknows(M1).iknows(M2) => iknows(msg1(D,HB,M1,M2));
+iMsg1d(HA:Honest,B:Agent,M1:untyped,M2:untyped)
+  iknows(msg1(HA,B,M1,M2)) => iknows(M1).iknows(M2);
+iMsg2c(D:Dishon,M1:untyped,M2:untyped)
+  iknows(M1).iknows(M2) => iknows(msg2(D,M1,M2));
+iMsg2d(HA:Honest,M1:untyped,M2:untyped)
+  iknows(msg2(HA,M1,M2)) => iknows(M1).iknows(M2);
+
+%%%% Regular Transfer Protocol
+
+
+step1(HA:Honest, B:Agent, NA:value)
+=[NA]=>
+iknows(msg1(HA,B,contract(HA,B),h(NA))).
+NA in condb(HA,B,hashed);
+
+step2(A:Agent, HB: Honest, NB: value, HNA: untyped)
+iknows(msg1(A,HB,contract(A,HB),HNA)).
+=[NB]=>
+iknows(msg2(HB,msg1(A,HB,contract(A,HB),HNA),h(NB))).
+NB in condb(HB,A,hashed);
+
+step3(HA: Honest, B:Agent, NA: value, HNB: untyped)
+iknows(msg2(B,msg1(HA,B,contract(HA,B),h(NA)),HNB)).
+NA in condb(HA,B,hashed)
+=>
+iknows(NA).
+NA in condb(HA,B,revealed);
+
+step4(A: Agent, HB: Honest, NA: value, NB: value)
+iknows(msg2(HB,msg1(A,HB,contract(A,HB),h(NA)),h(NB))).
+iknows(NA).
+NB in condb(HB,A,hashed)
+=>
+iknows(NB).
+NB in condb(HB,A,valid);
+
+step4receive(HA: Honest, B:Agent, NA: value, NB:value)
+iknows(msg2(B,msg1(HA,B,contract(HA,B),h(NA)),h(NB))).
+NA in condb(HA,B,revealed).
+iknows(NB)
+=>
+NA in condb(HA,B,valid);
+
+%%%% Abort Protocol
+
+%% (a) Honest Initiator; the server has not yet seen it
+
+abortInitNew(HA: Honest, B:Agent, NA: value)
+iknows(msg1(HA,B,contract(HA,B),h(NA))).
+NA in condb(HA,B,hashed).
+NA notin scondb(_,_,_)
+=>
+NA in condb(HA,B,aborted).
+NA in scondb(HA,B,aborted);
+
+%% (b) Honest Initiator; the server has seen it
+
+abortInitKnown(HA: Honest, B:Agent, NA:value, ST:SSts)
+iknows(msg1(HA,B,contract(HA,B),h(NA))).
+NA in condb(HA,B,hashed).
+NA in scondb(HA,B,ST)
+=>
+NA in condb(HA,B,ST).
+NA in scondb(HA,B,ST);
+
+%% (c) Dishonest Initiator, Unknown to server
+
+abortInitDishon(D:Dishon,HB:Honest, NA:value)
+iknows(msg1(D,HB,contract(D,HB),h(NA))).
+NA notin scondb(_,_,_)
+=>
+NA in scondb(D,HB,aborted);
+
+%%%% Resolve Responder
+
+%% (a) Honest Responder, Unknown to server
+
+resolveRespNew(A:Agent,HB:Honest,NA:value,NB:value)
+iknows(msg2(HB,msg1(A,HB,contract(A,HB),h(NA)),h(NB))).
+NB in condb(HB,A,hashed).
+NA notin scondb(_,_,_)
+=>
+NB in condb(HB,A,valid).
+NA in scondb(HB,A,valid);
+
+%% (b) Honest Responder, Known to server
+
+resolveRespKnown(A:Agent,HB:Honest,NA:value,NB:value,S:SSts)
+iknows(msg2(HB,msg1(A,HB,contract(A,HB),h(NA)),h(NB))).
+NB in condb(HB,A,hashed).
+NA in scondb(HB,A,S)
+=>
+NB in condb(HB,A,S).
+NA in scondb(HB,A,S);
+
+%% (c) Dishonest Responder, Unknown to server
+resolveRespDish(HA:Honest,D:Dishon,NA:value,NB:value)
+iknows(msg2(D,msg1(HA,D,contract(HA,D),h(NA)),h(NB))).
+NA notin scondb(_,_,_)
+=>
+NA in scondb(HA,D,valid);
+
+%%%% Resolve Initiator
+
+%% (a) Honest Initiator, Unknown to server
+
+resolveInitNew(HA:Honest,B:Agent,NA:value,HNB:untyped)
+iknows(msg2(B,msg1(HA,B,contract(HA,B),h(NA)),HNB)).
+NA in condb(HA,B,revealed).
+NA notin scondb(_,_,_)
+=>
+NA in condb(HA,B,valid).
+NA in scondb(HA,B,valid);
+
+%% (b) Honest Initiator, Known to server
+
+resolveInitKnown(HA:Honest,B:Agent,ST:SSts,NA:value,HNB:untyped)
+iknows(msg2(B,msg1(HA,B,contract(HA,B),h(NA)),HNB)).
+NA in condb(HA,B,revealed).
+NA in scondb(HA,B,ST)
+=>
+NA in condb(HA,B,ST).
+NA in scondb(HA,B,ST);
+
+%% (c) Dishonest Initiator, Unknown to Server
+
+resolveInitDish(D:Dishon,HB:Honest,NA:value,HNB:untyped)
+iknows(msg2(HB,msg1(D,HB,contract(D,HB),h(NA)),HNB)).
+NA notin scondb(_,_,_)
+=>
+NA in scondb(D,HB,valid);
+
+%%%% Attack
+
+attack(HA: Honest,B: Agent, NA: value, NB: value)
+iknows(msg2(B,msg1(HA,B,contract(HA,B),h(NA)),h(NB))).
+iknows(NA).
+iknows(NB).
+NA in condb(HA,B,aborted)
+=>
+attack;
